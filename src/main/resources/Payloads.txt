@@ -1,0 +1,15 @@
+Create Product
+{
+    "name": "Product1",
+    "description": "Product 1 Description",
+    "category": "Category1",
+    "price": 100.01
+}
+
+Update Product
+{
+    "name": "Product1_Updated",
+    "description": "Product 1 Description_Updated",
+    "category": "Category1_Updated",
+    "price": 100.12
+}
