@@ -1,6 +1,8 @@
 package com.vipgroup.products.controllers;
 
 import com.vipgroup.products.dataTransferObjects.CreateProductRequestDTO;
+import com.vipgroup.products.exceptions.ProductAlreadyExists;
+import com.vipgroup.products.exceptions.ProductMandatoryFieldsMissing;
 import com.vipgroup.products.exceptions.ProductNotFound;
 import com.vipgroup.products.models.Product;
 import com.vipgroup.products.services.ProductService;
@@ -32,8 +34,7 @@ public class ProductController {
         if (productId < 0) {
             return new ResponseEntity<>(HttpStatusCode.valueOf(400));
         }
-        Product product = new Product();
-        product = productService.getProductById(productId);
+        Product product = productService.getProductById(productId);
         ResponseEntity<Product> response = new ResponseEntity<Product>(product, HttpStatusCode.valueOf(200));
         return response;
     }
@@ -45,16 +46,15 @@ public class ProductController {
     }*/
 
     @PostMapping("")
-    public Product createProduct(@RequestBody CreateProductRequestDTO requestDTO) {
+    public ResponseEntity<Product> createProduct(@RequestBody CreateProductRequestDTO requestDTO) throws ProductAlreadyExists, ProductMandatoryFieldsMissing {
         System.out.println(requestDTO);
-        return productService.createProduct(requestDTO.getName(), requestDTO.getDescription(), requestDTO.getCategory(), requestDTO.getPrice());
+        Product product = productService.createProduct(requestDTO.getName(), requestDTO.getDescription(), requestDTO.getCategory(), requestDTO.getPrice());
+        ResponseEntity<Product> response = new ResponseEntity<Product>(product, HttpStatusCode.valueOf(201));
+        return response;
     }
 
     @PutMapping("/{productId}")
-    public ResponseEntity<Product> updateProductById(@PathVariable("productId") long productId, @RequestBody CreateProductRequestDTO requestDTO) throws ProductNotFound {
-        if (productId < 0) {
-            return new ResponseEntity<>(HttpStatusCode.valueOf(400));
-        }
+    public ResponseEntity<Product> updateProductById(@PathVariable("productId") long productId, @RequestBody CreateProductRequestDTO requestDTO) throws ProductNotFound, ProductMandatoryFieldsMissing, ProductAlreadyExists {
         Product product = productService.updateProductById(productId, requestDTO.getName(), requestDTO.getDescription(), requestDTO.getCategory(), requestDTO.getPrice());
         ResponseEntity<Product> response = new ResponseEntity<Product>(product, HttpStatusCode.valueOf(200));
         return response;
@@ -77,6 +77,16 @@ public class ProductController {
     @ExceptionHandler(ProductNotFound.class)
     public ResponseEntity<String> handleProductNotFoundException(ProductNotFound productNotFound) {
         return new ResponseEntity<>(productNotFound.getMessage(), HttpStatusCode.valueOf(404));
+    }
+
+    @ExceptionHandler(ProductMandatoryFieldsMissing.class)
+    public ResponseEntity<String> handleProductMandatoryFieldsMissingException(ProductMandatoryFieldsMissing productMandatoryFieldsMissing) {
+        return new ResponseEntity<>(productMandatoryFieldsMissing.getMessage(), HttpStatusCode.valueOf(400));
+    }
+
+    @ExceptionHandler(ProductAlreadyExists.class)
+    public ResponseEntity<String> handleProductDuplicatesException(ProductAlreadyExists productAlreadyExists) {
+        return new ResponseEntity<>(productAlreadyExists.getMessage(), HttpStatusCode.valueOf(400));
     }
 
 }
