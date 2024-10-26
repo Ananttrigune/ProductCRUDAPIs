@@ -1,16 +1,16 @@
 package com.vipgroup.products.services;
 
-import com.vipgroup.products.exceptions.ProductAlreadyExists;
-import com.vipgroup.products.exceptions.ProductMandatoryFieldsMissing;
-import com.vipgroup.products.exceptions.ProductNotFound;
+import com.vipgroup.products.exceptions.*;
 import com.vipgroup.products.models.Product;
 import com.vipgroup.products.projections.ProductInfo;
 import com.vipgroup.products.repositories.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -54,6 +54,128 @@ public class ProductService_MySQL implements ProductService {
     public Page<Product> getProducts(int pageSize, int pageNumber) {
         Page<Product> products = productRepository.findAll(PageRequest.of(pageNumber, pageSize));
         return products;
+    }
+
+    @Override
+    public Page<Product> getProducts(int pageSize, int pageNumber, String sortField) throws InvalidInputsException {
+        String[] s = sortField.split(",");
+        List<String> fields = new ArrayList<>();
+        List<String> orders = new ArrayList<>();
+        boolean fieldAdded, orderAdded;
+        if (s[0].equalsIgnoreCase("name") ||
+                s[0].equalsIgnoreCase("description") ||
+                s[0].equalsIgnoreCase("category") ||
+                s[0].equalsIgnoreCase("price") ||
+                s[0].equalsIgnoreCase("id")) {
+            fields.add(s[0]);
+            fieldAdded = true;
+            orderAdded = false;
+        } else {
+            throw new InvalidInputsException(s[0] + ErrorMesages.INVALID_SORTING_FIELDNAME);
+        }
+        for (int i = 1; i < s.length; i++) {
+            String c = s[i];
+            if (c.equalsIgnoreCase("name") ||
+                    c.equalsIgnoreCase("description") ||
+                    c.equalsIgnoreCase("category") ||
+                    c.equalsIgnoreCase("price") ||
+                    c.equalsIgnoreCase("id")) {
+                if (orderAdded) {
+                    fields.add(c);
+                    fieldAdded = true;
+                    orderAdded = false;
+                } else {
+                    orders.add("ASC");
+                    fieldAdded = false;
+                    orderAdded = true;
+                    fields.add(c);
+                    fieldAdded = true;
+                    orderAdded = false;
+                }
+            } else if (c.equalsIgnoreCase("ASC") || c.equalsIgnoreCase("DESC")) {
+                if (orderAdded) {
+                    throw new InvalidInputsException(s[0] + ErrorMesages.INVALID_SORTING_FIELDNAME);
+                } else {
+                    orders.add(c);
+                    fieldAdded = false;
+                    orderAdded = true;
+                }
+            } else {
+                throw new InvalidInputsException(s[0] + ErrorMesages.INVALID_SORTING_FIELDNAME);
+            }
+        }
+        List<Sort.Order> orderList = new ArrayList<>();
+        for (int i = 0; i < fields.size(); i++) {
+            String field = fields.get(i);
+            String direction = orders.get(i);
+            orderList.add("ASC".equalsIgnoreCase(direction) ? Sort.Order.asc(field) : Sort.Order.desc(field));
+        }
+        Sort sort = Sort.by(orderList);
+        Page<Product> products = productRepository.findAll(PageRequest.of(pageNumber, pageSize, sort));
+        //List<Product> listOfProducts = productRepository.findAll(PageRequest.of(pageNumber, pageSize, sort)).getContent();
+        return products;
+    }
+
+    @Override
+    public Page<Product> getProductsContent(int pageSize, int pageNumber, String sortField) throws InvalidInputsException {
+        String[] s = sortField.split(",");
+        List<String> fields = new ArrayList<>();
+        List<String> orders = new ArrayList<>();
+        boolean fieldAdded, orderAdded;
+        if (s[0].equalsIgnoreCase("name") ||
+                s[0].equalsIgnoreCase("description") ||
+                s[0].equalsIgnoreCase("category") ||
+                s[0].equalsIgnoreCase("price") ||
+                s[0].equalsIgnoreCase("id")) {
+            fields.add(s[0]);
+            fieldAdded = true;
+            orderAdded = false;
+        } else {
+            throw new InvalidInputsException(s[0] + ErrorMesages.INVALID_SORTING_FIELDNAME);
+        }
+        for (int i = 1; i < s.length; i++) {
+            String c = s[i];
+            if (c.equalsIgnoreCase("name") ||
+                    c.equalsIgnoreCase("description") ||
+                    c.equalsIgnoreCase("category") ||
+                    c.equalsIgnoreCase("price") ||
+                    c.equalsIgnoreCase("id")) {
+                if (orderAdded) {
+                    fields.add(c);
+                    fieldAdded = true;
+                    orderAdded = false;
+                } else {
+                    orders.add("ASC");
+                    fieldAdded = false;
+                    orderAdded = true;
+                    fields.add(c);
+                    fieldAdded = true;
+                    orderAdded = false;
+                }
+            } else if (c.equalsIgnoreCase("ASC") || c.equalsIgnoreCase("DESC")) {
+                if (orderAdded) {
+                    throw new InvalidInputsException(s[i] + ErrorMesages.INVALID_SORTING_FIELDNAME);
+                } else {
+                    orders.add(c);
+                    fieldAdded = false;
+                    orderAdded = true;
+                }
+            } else {
+                throw new InvalidInputsException(s[i] + ErrorMesages.INVALID_SORTING_FIELDNAME);
+            }
+        }
+        List<Sort.Order> orderList = new ArrayList<>();
+        for (int i = 0; i < fields.size(); i++) {
+            String field = fields.get(i);
+            String direction = orders.get(i);
+            orderList.add("ASC".equalsIgnoreCase(direction) ? Sort.Order.asc(field) : Sort.Order.desc(field));
+        }
+        Sort sort = Sort.by(orderList);
+        Page<Product> products = productRepository.findAll(PageRequest.of(pageNumber, pageSize, sort));
+        return products;
+
+        //List<Product> productContents = products.getContent();
+        //return productContents;
     }
 
     @Override

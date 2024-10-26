@@ -1,6 +1,7 @@
 package com.vipgroup.products.services;
 
 import com.vipgroup.products.dataTransferObjects.ProductsDTO_FakeStore;
+import com.vipgroup.products.exceptions.InvalidInputsException;
 import com.vipgroup.products.exceptions.ProductNotFound;
 import com.vipgroup.products.models.Product;
 import com.vipgroup.products.projections.ProductInfo;
@@ -38,6 +39,16 @@ public class ProductService_FakeStore implements ProductService {
 
     @Override
     public Page<Product> getProducts(int pageSize, int pageNumber) {
+        return null;
+    }
+
+    @Override
+    public Page<Product> getProducts(int pageSize, int pageNumber, String sortFieldAndOrderBy) {
+        return null;
+    }
+
+    @Override
+    public Page<Product> getProductsContent(int pageSize, int pageNumber, String sortFieldAndOrderBy) throws InvalidInputsException {
         return null;
     }
 

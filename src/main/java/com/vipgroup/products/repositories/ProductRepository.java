@@ -4,6 +4,7 @@ import com.vipgroup.products.models.Product;
 import com.vipgroup.products.projections.ProductInfo;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -26,6 +27,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     //Fina all Products suporting Pagination
      Page<Product> findAll(Pageable pageable);
+
+    //Fina all Products suporting Pagination and Sorting
+    //Page<Product> findAll(Pageable pageable);
 
     //Find Product by given Id
     /*Product findById(long id);*/

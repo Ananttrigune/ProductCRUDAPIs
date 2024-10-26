@@ -1,15 +1,14 @@
 package com.vipgroup.products.controllers;
 
 import com.vipgroup.products.dataTransferObjects.CreateProductRequestDTO;
-import com.vipgroup.products.exceptions.ProductAlreadyExists;
-import com.vipgroup.products.exceptions.ProductMandatoryFieldsMissing;
-import com.vipgroup.products.exceptions.ProductNotFound;
+import com.vipgroup.products.exceptions.*;
 import com.vipgroup.products.models.Product;
 import com.vipgroup.products.projections.ProductInfo;
 import com.vipgroup.products.services.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -63,10 +62,10 @@ public class ProductController {
     @GetMapping("/pagination")
     public ResponseEntity<Page<Product>> getProductsWithPagination(
             @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
-            @RequestParam(value = "pageNumber", defaultValue = "0") int pageNumber) throws Exception {
+            @RequestParam(value = "pageNumber", defaultValue = "0") int pageNumber) throws InvalidInputsException {
         // Invalid parameter for pageSize and pageNumber --> Throwing Exception message
         if (pageSize < 1 || pageNumber < 0) {
-            throw new Exception("Input valid parameters for pageSize and/or pageNumber. \nValid values as pageSize>0 and pageNumber>=0");
+            throw new InvalidInputsException(ErrorMesages.INVALID_PAGINATIONCOUNTERS);
         }
         /*
         // Invalid parameter for pageSize and pageNumber --> Assign default values
@@ -76,6 +75,55 @@ public class ProductController {
 
         Page<Product> products = productService.getProducts(pageSize, pageNumber);
         ResponseEntity<Page<Product>> response = new ResponseEntity<>(products, HttpStatusCode.valueOf(200));
+        return response;
+    }
+
+    @GetMapping("/sortedPagination")
+    public ResponseEntity<Page<Product>> getProductsSortedWithPagination(
+            @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
+            @RequestParam(value = "pageNumber", defaultValue = "0") int pageNumber,
+            @RequestParam(value = "fieldNamesOrderType") String fieldNamesOrderType) throws InvalidInputsException {
+        // Invalid parameter for pageSize and pageNumber --> Throwing Exception message
+        if (pageSize < 1 || pageNumber < 0) {
+            throw new InvalidInputsException(ErrorMesages.INVALID_PAGINATIONCOUNTERS);
+        }
+        /*
+        // Invalid parameter for pageSize and pageNumber --> Assign default values
+        if (pageSize < 1) pageSize = 10;
+        if (pageNumber < 0) pageNumber = 0;
+        */
+
+        Page<Product> products = productService.getProducts(pageSize, pageNumber, fieldNamesOrderType);
+        ResponseEntity<Page<Product>> response = new ResponseEntity<>(products, HttpStatusCode.valueOf(200));
+        return response;
+    }
+
+    @GetMapping("/sortedPagination/content")
+    public ResponseEntity<List<Product>> getProductsContentSortedWithPagination(
+            @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
+            @RequestParam(value = "pageNumber", defaultValue = "0") int pageNumber,
+            @RequestParam(value = "fieldNamesOrderType") String fieldNamesOrderType) throws InvalidInputsException {
+        // Invalid parameter for pageSize and pageNumber --> Throwing Exception message
+        if (pageSize < 1 || pageNumber < 0) {
+            throw new InvalidInputsException(ErrorMesages.INVALID_PAGINATIONCOUNTERS);
+        }
+        /*
+        // Invalid parameter for pageSize and pageNumber --> Assign default values
+        if (pageSize < 1) pageSize = 10;
+        if (pageNumber < 0) pageNumber = 0;
+        */
+
+        Page<Product> products = productService.getProductsContent(pageSize, pageNumber, fieldNamesOrderType);
+        List<Product> productContents = products.getContent();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("totalNumberOfElements", String.valueOf(products.getTotalElements()));
+        headers.add("pageSize", String.valueOf(products.getSize()));
+        headers.add("totalNumberOfPages", String.valueOf(products.getTotalPages()));
+        headers.add("pageNumber", String.valueOf(products.getNumber()));
+        headers.add("numberOfElementsOnPage", String.valueOf(products.getNumberOfElements()));
+        headers.add("isLastPage", String.valueOf(products.isLast()));
+        headers.add("isFirstPage", String.valueOf(products.isFirst()));
+        ResponseEntity<List<Product>> response = new ResponseEntity<>(productContents, headers, HttpStatusCode.valueOf(200));
         return response;
     }
 
@@ -104,7 +152,7 @@ public class ProductController {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleInvalidPaginationCountersException(Exception errorMessage) {
+    public ResponseEntity<String> handleInvalidInputsException(Exception errorMessage) {
         return new ResponseEntity<>(errorMessage.getMessage(), HttpStatusCode.valueOf(400));
     }
 
