@@ -3,6 +3,8 @@ package com.vipgroup.products.services;
 import com.vipgroup.products.dataTransferObjects.ProductsDTO_FakeStore;
 import com.vipgroup.products.exceptions.ProductNotFound;
 import com.vipgroup.products.models.Product;
+import com.vipgroup.products.projections.ProductInfo;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -35,6 +37,11 @@ public class ProductService_FakeStore implements ProductService {
     }
 
     @Override
+    public Page<Product> getProducts(int pageSize, int pageNumber) {
+        return null;
+    }
+
+    @Override
     public Product updateProductById(long productId, String name, String description, String category, float price) throws ProductNotFound {
         return null;
     }
@@ -42,6 +49,11 @@ public class ProductService_FakeStore implements ProductService {
     @Override
     public void deleteProductById(long productId) throws ProductNotFound {
 
+    }
+
+    @Override
+    public ProductInfo getProductInfoById(long productId) throws ProductNotFound {
+        return null;
     }
 
     /*public List<Products> getProductsWithLimit(int limitCount) {

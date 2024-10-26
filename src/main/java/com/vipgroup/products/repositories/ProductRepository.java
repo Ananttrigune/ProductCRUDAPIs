@@ -1,7 +1,11 @@
 package com.vipgroup.products.repositories;
 
 import com.vipgroup.products.models.Product;
+import com.vipgroup.products.projections.ProductInfo;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +24,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     //Find all Products
     List<Product> findAll();
 
+    //Fina all Products suporting Pagination
+     Page<Product> findAll(Pageable pageable);
+
     //Find Product by given Id
     /*Product findById(long id);*/
     Optional<Product> findById(long id);
@@ -29,4 +36,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     //Delete Product by given Id
     void deleteById(long id);
+
+    @Query(nativeQuery = true, value = "select p.id, p.name, p.description from product p where id=:id")
+    ProductInfo getProductInfoById(long id);
+
 }

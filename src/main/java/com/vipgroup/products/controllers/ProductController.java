@@ -5,9 +5,11 @@ import com.vipgroup.products.exceptions.ProductAlreadyExists;
 import com.vipgroup.products.exceptions.ProductMandatoryFieldsMissing;
 import com.vipgroup.products.exceptions.ProductNotFound;
 import com.vipgroup.products.models.Product;
+import com.vipgroup.products.projections.ProductInfo;
 import com.vipgroup.products.services.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,19 +33,10 @@ public class ProductController {
 
     @GetMapping("/{productId}")
     public ResponseEntity<Product> getProductById(@PathVariable("productId") long productId) throws ProductNotFound {
-        if (productId < 0) {
-            return new ResponseEntity<>(HttpStatusCode.valueOf(400));
-        }
         Product product = productService.getProductById(productId);
         ResponseEntity<Product> response = new ResponseEntity<Product>(product, HttpStatusCode.valueOf(200));
         return response;
     }
-
-    /*@PostMapping("")
-    public Product createProduct(@RequestBody CreateProductRequestDTO requestDTO){
-        System.out.println(requestDTO);
-        return productService.createProduct(requestDTO.getName(), requestDTO.getDescription(), requestDTO.getCategory(), requestDTO.getPrice());
-    }*/
 
     @PostMapping("")
     public ResponseEntity<Product> createProduct(@RequestBody CreateProductRequestDTO requestDTO) throws ProductAlreadyExists, ProductMandatoryFieldsMissing {
@@ -60,10 +53,31 @@ public class ProductController {
         return response;
     }
 
-   /* @GetMapping("/limit")
-    public void getProductsWithLimits(@RequestParam int limit) {
+    @GetMapping("/Info/{productId}")
+    public ResponseEntity<ProductInfo> getProductInfoById(@PathVariable("productId") long productId) throws ProductNotFound {
+        ProductInfo productIno = productService.getProductInfoById(productId);
+        ResponseEntity<ProductInfo> response = new ResponseEntity<ProductInfo>(productIno, HttpStatusCode.valueOf(200));
+        return response;
+    }
 
-    }*/
+    @GetMapping("/pagination")
+    public ResponseEntity<Page<Product>> getProductsWithPagination(
+            @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
+            @RequestParam(value = "pageNumber", defaultValue = "0") int pageNumber) throws Exception {
+        // Invalid parameter for pageSize and pageNumber --> Throwing Exception message
+        if (pageSize < 1 || pageNumber < 0) {
+            throw new Exception("Input valid parameters for pageSize and/or pageNumber. \nValid values as pageSize>0 and pageNumber>=0");
+        }
+        /*
+        // Invalid parameter for pageSize and pageNumber --> Assign default values
+        if (pageSize < 1) pageSize = 10;
+        if (pageNumber < 0) pageNumber = 0;
+        */
+
+        Page<Product> products = productService.getProducts(pageSize, pageNumber);
+        ResponseEntity<Page<Product>> response = new ResponseEntity<>(products, HttpStatusCode.valueOf(200));
+        return response;
+    }
 
     @DeleteMapping("/{productId}")
     public ResponseEntity<Product> deleteProductById(@PathVariable("productId") long productId) throws ProductNotFound {
@@ -87,6 +101,11 @@ public class ProductController {
     @ExceptionHandler(ProductAlreadyExists.class)
     public ResponseEntity<String> handleProductDuplicatesException(ProductAlreadyExists productAlreadyExists) {
         return new ResponseEntity<>(productAlreadyExists.getMessage(), HttpStatusCode.valueOf(400));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleInvalidPaginationCountersException(Exception errorMessage) {
+        return new ResponseEntity<>(errorMessage.getMessage(), HttpStatusCode.valueOf(400));
     }
 
 }

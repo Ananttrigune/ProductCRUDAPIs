@@ -4,8 +4,11 @@ import com.vipgroup.products.exceptions.ProductAlreadyExists;
 import com.vipgroup.products.exceptions.ProductMandatoryFieldsMissing;
 import com.vipgroup.products.exceptions.ProductNotFound;
 import com.vipgroup.products.models.Product;
+import com.vipgroup.products.projections.ProductInfo;
 import com.vipgroup.products.repositories.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -48,6 +51,12 @@ public class ProductService_MySQL implements ProductService {
     }
 
     @Override
+    public Page<Product> getProducts(int pageSize, int pageNumber) {
+        Page<Product> products = productRepository.findAll(PageRequest.of(pageNumber, pageSize));
+        return products;
+    }
+
+    @Override
     public Product updateProductById(long productId, String name, String description, String category, float price) throws
             ProductNotFound, ProductMandatoryFieldsMissing, ProductAlreadyExists {
         Product product = getProductIfExists(productId);
@@ -70,6 +79,12 @@ public class ProductService_MySQL implements ProductService {
         Product product = getProductIfExists(productId);
         productRepository.deleteById(productId);
         System.out.println("Product details deleted with Id: " + product.getId());
+    }
+
+    @Override
+    public ProductInfo getProductInfoById(long productId) throws ProductNotFound {
+        ProductInfo productInfo = productRepository.getProductInfoById(productId);
+        return productInfo;
     }
 
     public Product getProductIfExists(long productId) throws ProductNotFound {
