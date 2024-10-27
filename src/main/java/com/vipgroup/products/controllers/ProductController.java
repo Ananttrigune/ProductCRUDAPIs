@@ -20,7 +20,9 @@ import java.util.List;
 public class ProductController {
 
     @Autowired
-    @Qualifier("MYSQL_Impl")
+    //@Qualifier("MYSQL_Impl")
+    //@Qualifier("FAKESTORE")
+    @Qualifier("FAKESTORE")
     private ProductService productService;
 
     @GetMapping({"", "/"})
@@ -63,10 +65,15 @@ public class ProductController {
     public ResponseEntity<Page<Product>> getProductsWithPagination(
             @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
             @RequestParam(value = "pageNumber", defaultValue = "0") int pageNumber) throws InvalidInputsException {
+        //If pageSize higher than max limit then set to max limit
+        int maxPageSize = 20;
+        pageSize = Math.min(pageSize, maxPageSize);
+
         // Invalid parameter for pageSize and pageNumber --> Throwing Exception message
         if (pageSize < 1 || pageNumber < 0) {
             throw new InvalidInputsException(ErrorMesages.INVALID_PAGINATIONCOUNTERS);
         }
+
         /*
         // Invalid parameter for pageSize and pageNumber --> Assign default values
         if (pageSize < 1) pageSize = 10;
@@ -83,6 +90,11 @@ public class ProductController {
             @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
             @RequestParam(value = "pageNumber", defaultValue = "0") int pageNumber,
             @RequestParam(value = "fieldNamesOrderType") String fieldNamesOrderType) throws InvalidInputsException {
+
+        //If pageSize is higher than max limit then set to max limit
+        int maxPageSize = 20;
+        pageSize = Math.min(maxPageSize, pageSize);
+
         // Invalid parameter for pageSize and pageNumber --> Throwing Exception message
         if (pageSize < 1 || pageNumber < 0) {
             throw new InvalidInputsException(ErrorMesages.INVALID_PAGINATIONCOUNTERS);
@@ -103,6 +115,10 @@ public class ProductController {
             @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
             @RequestParam(value = "pageNumber", defaultValue = "0") int pageNumber,
             @RequestParam(value = "fieldNamesOrderType") String fieldNamesOrderType) throws InvalidInputsException {
+        // If pageSize is higher than max limit then set to max limit
+        int maxPageSize = 20;
+        pageSize = Math.min(maxPageSize, pageSize);
+
         // Invalid parameter for pageSize and pageNumber --> Throwing Exception message
         if (pageSize < 1 || pageNumber < 0) {
             throw new InvalidInputsException(ErrorMesages.INVALID_PAGINATIONCOUNTERS);

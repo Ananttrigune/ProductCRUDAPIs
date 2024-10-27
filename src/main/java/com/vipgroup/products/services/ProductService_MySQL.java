@@ -173,7 +173,6 @@ public class ProductService_MySQL implements ProductService {
         Sort sort = Sort.by(orderList);
         Page<Product> products = productRepository.findAll(PageRequest.of(pageNumber, pageSize, sort));
         return products;
-
         //List<Product> productContents = products.getContent();
         //return productContents;
     }

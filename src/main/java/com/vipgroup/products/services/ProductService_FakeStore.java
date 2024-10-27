@@ -5,7 +5,9 @@ import com.vipgroup.products.exceptions.InvalidInputsException;
 import com.vipgroup.products.exceptions.ProductNotFound;
 import com.vipgroup.products.models.Product;
 import com.vipgroup.products.projections.ProductInfo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -13,18 +15,30 @@ import java.util.List;
 
 @Service("FAKESTORE")
 public class ProductService_FakeStore implements ProductService {
+
+    @Autowired
+    RestTemplate restTemplate;
+    @Autowired
+    RedisTemplate<String, Object> redisTemplate;
+
     String url = "https://fakestoreapi.com/products";
 
     //Call actual Fake Store API, convert fakestore product to our Product model and return
     @Override
-    public Product getProductById(long productId) throws ProductNotFound {
-        String uri = url + "/" + productId;
-        RestTemplate restTemplate = new RestTemplate();
-        ProductsDTO_FakeStore productFakeStore = restTemplate.getForObject(uri, ProductsDTO_FakeStore.class);
-        if (productFakeStore == null) {
-            throw new ProductNotFound("Product with id: " + productId + " does not found!");
+    public Product getProductById(long id) throws ProductNotFound {
+        Product product = (Product) this.redisTemplate.opsForHash().get("PRODUCTS", "product_" + id);
+        if (product != null) {
+            return product;
         }
-        return convert_ProductDTOFakeStore_Products(productFakeStore);
+
+        String uri = url + "/" + id;
+        ProductsDTO_FakeStore productFakeStore = this.restTemplate.getForObject(uri, ProductsDTO_FakeStore.class);
+        if (productFakeStore == null) {
+            throw new ProductNotFound("Product with id: " + id + " does not found!");
+        }
+        product = convert_ProductDTOFakeStore_Products(productFakeStore);
+        this.redisTemplate.opsForHash().put("PRODUCTS", "product_" + id, product);
+        return product;
     }
 
     @Override
@@ -59,25 +73,12 @@ public class ProductService_FakeStore implements ProductService {
 
     @Override
     public void deleteProductById(long productId) throws ProductNotFound {
-
     }
 
     @Override
     public ProductInfo getProductInfoById(long productId) throws ProductNotFound {
         return null;
     }
-
-    /*public List<Products> getProductsWithLimit(int limitCount) {
-        String uri = url + "?" + limitCount;
-        List<ProductsDTO_FakeStore> productsFakeStore =new ArrayList<>();
-        List<Products> products = new ArrayList<Products>();
-        //Get the response and store into productsFakeStore
-        for (ProductsDTO_FakeStore productFakeStore : productsFakeStore) {
-            Products product = convert_ProductDTOFakeStore_Products(productFakeStore);
-            products.add(product);
-        }
-        return products;
-    }*/
 
     /*public List<Products> getProductsAll() {
         String uri = url + "/";
